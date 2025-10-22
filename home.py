@@ -4,13 +4,12 @@
 # TODO: Figure out how to save password (can make a txt file, make sure permissions make sense)
 # TODO: (Future implementation add Cryptography to encrypt entries before saving them and decrypt before reading, maybe sprint 2! Great micro service too. Maybe input is a txt file and same with output idk, or path name whichever works best across languages. OSs will be a problem.)
 # TODO: (Future microservice ideas: Encrypt text, decrypt text, edit and update text file, random number generator, ascii art printer, positive affirmation generator, )
-# TODO: Replace all passes with code
-# TODO: decide how array can be stored and parsed please
+# TODO: Add password file creation
 
 import os #operating system commands
 
 # Globals, all option statuses are booleans, more to be added in future iterations
-#TODO: settings array variable 
+settings = ['0'] * 10  # character array of ten spots, 0 or 1
 firstTimeSetUp = True  # false if the user has logged in before (checking settings.txt file)
 passwordExists = False  # true if the password has been set previously
 
@@ -25,34 +24,121 @@ exitbool = True
 #This function reads the text file 'settings.txt' and 'password.txt' which contains settings for the user's data
 #settings array
 def readData():
-    #settings.txt will be a string of 1s and 0s, in order of array spot
-    #the array is a character array with ten spots acting as 0 or 1 booleans
-    #the array will be further widened as the program gets further in development
-    #spot 0 is firstTimeSetUp
-    #spot 1 is passwordExists
-    #password.txt just contains the users journal password
-    #if password exists:
-    #reads password.txt and sets password variable to it
-    #if password does not exist:
-    #do not read or look for password.txt
-    print("hi")
+    global settings, firstTimeSetUp, passwordExists, password
+    with open("settings.txt", "r", encoding="utf-8") as f:
+        raw = f.read()
+    bits = [c for c in raw if c in "01"]
+    #ensure we have exactly 10 (for now)
+    if len(bits) < 10:
+        bits += ["0"] * (10 - len(bits))
+    else:
+        bits = bits[:10]
+    settings = bits 
+
+    #parse settings array to apply setting preset
+    firstTimeSetUp = True if settings[0] == "1" else False
+    passwordExists = True if settings[1] == "1" else False
+
+    # only read password.txt if a password exists
+    password = ""
+    if passwordExists:
+        try:
+            with open("password.txt", "r", encoding="utf-8") as pf:
+                password = pf.read().rstrip("\n")
+        except FileNotFoundError:
+            print("Warning: settings indicate a password exists but 'password.txt' was not found. Disabling password flag in memory.")
+            passwordExists = False
+            settings[1] = "0"
+    #return the array just in case
+    return settings
+
 
 #This function runs through extra information if the user has not opened Pocket Journal before
 def firstStart():
+    global settings, firstTimeSetUp, passwordExists
     #informs the user that this tool will modify their files. Asks if they would like to proceed
-    #if the user proceeds, continue, otherwise exit program
-    #creates the folder for Pocket Journal
-    #creates settings.txt TODO: Should I just add the file in github? That way I 
-    # can have the default settings in there already on first download
-    #starts by saving information to settings.txt in set format
-    #first time starting pocket journal, in which case, default settings are set
-    #for first time setup, user should be told where entries will be stored
-    #should tell the user for first time setup that it will be modifying files on the users computer
-    print("hi")
+    print("It seems this is your first time opening Pocket Journal.")
+    print("There are a few things to be aware of for your first time, such as how")
+    print("this program functions. This executable will be capable of altering and")
+    print("creating files locally on your computer. If this is objectionable")
+    print("to you in any way, please exit the program.\n")
+    print("If you are not opposed to this. Hit 'Enter'.\n")
+    user_input = input()
+    print("Entries will be stored in the same directory as this executable.")
+    print("To begin Journal initialization, please hit 'Enter'.")
+    user_input = input()
+    #creates the folder 'journalentries' if it does not exist
+    folder = "journalentries"
+    os.makedirs(folder, exist_ok=True)
+    # starts by saving information to settings.txt in set format
+    # write 00 to the text file
+    try:
+        with open("settings.txt", "w", encoding="utf-8") as sf:
+            sf.write("00")  # per your comment: write '10' (rest will be interpreted/padded later)
+    except OSError as e: #might pop up in different OS or bas permissions
+        print(f"Error: Unable to write settings.txt: {e}")
+        return
 
-#This function allows users to select and delete entries, deleting the text files that hold them
+    #call readData again to update
+    readData()
+    #first time starting pocket journal, in which case, default settings are set
+    print("journalentries folder has been created.")
+    print("Settings have been updated.")
+    print("Thank you for using Pocket Journal!")
+
+
+#This function allows users to user_inputect and delete entries, deleting the text files that hold them
 def deleteentry():
-    print("hi")
+    global menubool
+    folder = "journalentries"
+
+    files = [f for f in os.listdir(folder) if f.endswith(".txt")]
+    if not files:
+        print("No journal entries found to delete.\n")
+        return
+    menubool = True
+    while menubool:
+        # list all journal entries
+        for i, name in enumerate(files, start = 1):
+            print(f"[{i}] {name}")
+        print("[0] Back")
+        print("Above are your previously made journal entries, listed as their file name in your computer.")
+        print("They are organized by last edited. To delete one, enter the number corresponding to the desired file.")
+        try:
+            user_input = int(input())
+        except ValueError:
+            print("Error: Please enter a valid number.\n")
+            return
+
+        # validate user_inputection
+        if user_input < 0 or user_input >= len(files):
+            print("Error: Entry number not found.\n")
+            return
+        elif user_input == 0:
+            break
+
+        filename = files[user_input]
+        filepath = os.path.join(folder, filename)
+
+        # confirmation loop
+        while menubool:
+            print("Are you sure you want to delete the current entry? This choice is irreversible, and the file")
+            print("will be unable to be recovered. (Y/N)")
+            confirm = input().strip().upper()
+            if confirm == "Y":
+                try:
+                    os.remove(filepath)
+                    print(f"Journal entry '{filename}' has been deleted.")
+                except OSError as e:
+                    print(f"Error: Unable to delete file '{filename}': {e}")
+                break
+            elif confirm == "N":
+                break
+            else:
+                print("Error: Menu option not found. Please enter the chosen letter.\n")
+
+
+    
 
 
 #This function allows users to create text files /  entries on their computer
@@ -86,8 +172,106 @@ def createentry():
 
 
 #This function will allow users to look at their entries
+#There is also an option for the users to delete their entries if they so wish
 def showentries():
-    print("hi")
+    global menubool, settings
+    folder = "journalentries"
+
+    # ensure folder exists and contains .txt files
+    if not os.path.exists(folder):
+        print("No journalentries folder found. There are no entries to view.\n")
+        return
+
+    files = [f for f in os.listdir(folder) if f.endswith(".txt")]
+    if not files:
+        print("No journal entries found to view.\n")
+        return
+
+    # sort by last edited time, newest first
+    files.sort(key=lambda f: os.path.getmtime(os.path.join(folder, f)), reverse=True)
+
+    menubool = True
+    while menubool:
+        #list all journal entries
+        for i, name in enumerate(files, start=1):
+            print(f"[{i}] {name}")
+        print("[0] Back")
+        print("Above are your previously made journal entries, listed as their file name in your computer.")
+        print("They are organized by last edited. To view one, enter the number corresponding to the desired file.")
+
+        user_input = input().strip()
+        try:
+            user_input_num = int(user_input)
+        except ValueError:
+            print("Error: Please enter a valid number.\n")
+            continue
+
+        if user_input_num == 0:
+            return
+
+        if user_input_num < 1 or user_input_num > len(files):
+            print("Error: Entry number not found.\n")
+            continue
+
+        index = user_input_num - 1
+        filename = files[index]
+        filepath = os.path.join(folder, filename)
+
+        # print file contents
+        try:
+            with open(filepath, "r", encoding="utf-8") as rf:
+                content = rf.read()
+        except OSError as e:
+            print(f"Error: Unable to open file '{filename}': {e}\n")
+            try:
+                files.pop(index)
+            except Exception:
+                pass
+            if not files:
+                print("No remaining journal entries.\n")
+                return
+            continue
+
+        print(f"\n--- {filename} ---\n")
+        if content:
+            print(content)
+        else:
+            print("(This entry is empty.)")
+        print("\n--- End of entry ---\n")
+
+        while True:
+            print("Please enter the corresponding number from the following menu options:\n")
+            print("[1] Delete Current Entry\n")
+            print("[2] Back\n")
+            user_input = input().strip()
+
+            if user_input == "1":
+                # confirmation loop
+                while True:
+                    print("Are you sure you want to delete the current entry? This choice is irreversible, and the file")
+                    print("will be unable to be recovered. (Y/N)")
+                    confirm = input().strip().upper()
+                    if confirm == "Y":
+                        try:
+                            os.remove(filepath)
+                            print(f"Journal entry '{filename}' has been deleted.")
+                            files.pop(index)
+                        except OSError as e:
+                            print(f"Error: Unable to delete file '{filename}': {e}")
+                        break  # exit confirmation loop
+                    elif confirm == "N":
+                        break  
+                    else:
+                        print("Error: Menu option not found. Please enter the chosen letter.\n")
+                break
+            elif user_input == "2":
+                break
+            else:
+                print("Error: Menu option not found. Please enter the chosen number.\n")
+        if not files:
+            print("No remaining journal entries.\n")
+            return
+
 
 
 # This function is just a sub menu for entry related option in pocket journal.
@@ -107,7 +291,7 @@ def entries():
         elif user_input == "3":
             deleteentry()
         elif user_input == "4":
-            menubool = False
+            break
         else:
             print("Error: Menu option not found. Please enter the chosen number.\n")
 
@@ -130,8 +314,10 @@ def passwordfunc():
                 #TODO: exit
 
 
+#Options allows users to affect global variables, and saves them in a text file so they persist after 
+#closing the application
 def options():
-    global menubool, passwordExists, enabled, password
+    global menubool, passwordExists, enabled, password, settings
                                  
     print(" _____     _   _             ")
     print("|     |___| |_|_|___ ___ ___ ")
@@ -149,6 +335,7 @@ def options():
             if passwordExists:
                 print("Please enter your new password. If you would like to disable the password,")
                 print("do not type anything, and hit 'enter'.\n")
+                #TODO: create password.txt in options
                 user_input = input()
                 if user_input == "":
                     passwordExists = False
@@ -159,12 +346,13 @@ def options():
                 pass
         elif user_input == "2":
             #TODO: save user data before exiting options
-            menubool = False
+            break
         else:
             print("Error: Menu option not found. Please enter the chosen number.\n")
 
 #this function brings up the wall of text that is the Help page
 #It just works as documentation for the app
+#In the future, this may be a seperate document instead, or just the README file.
 def helpdoc():
                      
     print(" _____     _     ")
@@ -223,10 +411,10 @@ def main():
                                                                  
     print("Welcome to Pocket Journal, your local, digital journal managing application. Make entries to read later!\n")
     print("\n")
-    readData()
+    settings = readData()
     if firstTimeSetUp: #If the user has not used Pocket Journal before
         firstStart()
-    if passwordExists:
+    if passwordExists: #If the user has a password set up
         passwordfunc()
     while exitbool:
         print("Please enter the corresponding number from the following menu options:\n")
