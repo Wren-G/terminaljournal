@@ -1,12 +1,15 @@
-#this is my base software
+#Wren Gilbert
+#Pocket Journal, a terminal journaling app
+#This program is my main implementation, all functions here have comments to explain them
 # TODO: Add comment blocks to all functions
 # TODO: Add comment blocks to all programs and micro services
-# TODO: Figure out how to save password (can make a txt file, make sure permissions make sense)
 # TODO: (Future implementation add Cryptography to encrypt entries before saving them and decrypt before reading, maybe sprint 2! Great micro service too. Maybe input is a txt file and same with output idk, or path name whichever works best across languages. OSs will be a problem.)
 # TODO: (Future microservice ideas: Encrypt text, decrypt text, edit and update text file, random number generator, ascii art printer, positive affirmation generator, )
-# TODO: Add password file creation
+# TODO: (future implementation add flags for encryption and things like the ascii and words of affirmation for more user experience)
+# TODO: For all microservice and settings adjustments, first time start up, readdata, help, options, and even settings.txt all need updates
 
 import os #operating system commands
+import sys #for system exit
 
 # Globals, all option statuses are booleans, more to be added in future iterations
 settings = ['0'] * 10  # character array of ten spots, 0 or 1
@@ -15,20 +18,36 @@ passwordExists = False  # true if the password has been set previously
 
 
 # referenced globals
-menubool = True
-wrongpass = True
-enabled = False
-password = ""
-exitbool = True
+menubool = True # used for while loops
+wrongpass = True # used for password function
+password = "" # holds password string
+exitbool = True # main menu while loop
+
+#save function should write the settings array into the text file
+#save function also calls readdata to ensure that the program is always up to date and a call is not missed
+def saveSettings():
+    global settings
+    bits = [c if c in "01" else "0" for c in settings]
+    if len(bits) < 10:
+        bits += ["0"] * (10 - len(bits))
+    else:
+        bits = bits[:10]
+    out = "".join(bits)
+
+    with open("settings.txt", "w", encoding="utf-8") as f:
+        f.write(out)
+
+    readData()
+
 
 #This function reads the text file 'settings.txt' and 'password.txt' which contains settings for the user's data
-#settings array
+#settings array should be updated with this information
 def readData():
     global settings, firstTimeSetUp, passwordExists, password
     with open("settings.txt", "r", encoding="utf-8") as f:
         raw = f.read()
     bits = [c for c in raw if c in "01"]
-    #ensure we have exactly 10 (for now)
+    #ensure we have exactly 10 (for now) (for other coders, this is for my future settings slots / global flags)
     if len(bits) < 10:
         bits += ["0"] * (10 - len(bits))
     else:
@@ -39,16 +58,11 @@ def readData():
     firstTimeSetUp = True if settings[0] == "1" else False
     passwordExists = True if settings[1] == "1" else False
 
-    # only read password.txt if a password exists
+    #only read password.txt if a password exists
     password = ""
     if passwordExists:
-        try:
-            with open("password.txt", "r", encoding="utf-8") as pf:
-                password = pf.read().rstrip("\n")
-        except FileNotFoundError:
-            print("Warning: settings indicate a password exists but 'password.txt' was not found. Disabling password flag in memory.")
-            passwordExists = False
-            settings[1] = "0"
+        with open("password.txt", "r", encoding="utf-8") as pf:
+            password = pf.read().rstrip("\n")
     #return the array just in case
     return settings
 
@@ -71,16 +85,10 @@ def firstStart():
     folder = "journalentries"
     os.makedirs(folder, exist_ok=True)
     # starts by saving information to settings.txt in set format
-    # write 00 to the text file
-    try:
-        with open("settings.txt", "w", encoding="utf-8") as sf:
-            sf.write("00")  # per your comment: write '10' (rest will be interpreted/padded later)
-    except OSError as e: #might pop up in different OS or bas permissions
-        print(f"Error: Unable to write settings.txt: {e}")
-        return
-
-    #call readData again to update
-    readData()
+    # write 00 to the text file (no password, no first time setup prompt)
+    settings[0] = "0"
+    settings[1] = "0"
+    saveSettings() #save settings
     #first time starting pocket journal, in which case, default settings are set
     print("journalentries folder has been created.")
     print("Settings have been updated.")
@@ -88,7 +96,7 @@ def firstStart():
 
 
 #This function allows users to user_inputect and delete entries, deleting the text files that hold them
-def deleteentry():
+def deleteEntry():
     global menubool
     folder = "journalentries"
 
@@ -143,7 +151,7 @@ def deleteentry():
 
 #This function allows users to create text files /  entries on their computer
 #This function also creates the folder 'journal entries' if it does not exist
-def createentry():
+def createEntry():
     folder = "journalentries"
     #ensure the folder exists and makes the folder if first start up
     os.makedirs(folder, exist_ok=True)
@@ -170,10 +178,10 @@ def createentry():
 
 
 
-
+#TODO make this more modular
 #This function will allow users to look at their entries
 #There is also an option for the users to delete their entries if they so wish
-def showentries():
+def showEntries():
     global menubool, settings
     folder = "journalentries"
 
@@ -285,11 +293,11 @@ def entries():
         print("[4] Go Back\n")
         user_input = input()
         if user_input == "1":
-            showentries()
+            showEntries()
         elif user_input == "2":
-            createentry()
+            createEntry()
         elif user_input == "3":
-            deleteentry()
+            deleteEntry()
         elif user_input == "4":
             break
         else:
@@ -311,13 +319,14 @@ def passwordfunc():
             counter = counter + 1
             if counter == 3:
                 print("Too many incorrect password attempts. Goodbye.")
-                #TODO: exit
+                #TODO: ensure exit command is safe
+                sys.exit()
 
 
 #Options allows users to affect global variables, and saves them in a text file so they persist after 
 #closing the application
 def options():
-    global menubool, passwordExists, enabled, password, settings
+    global menubool, passwordExists, password, settings
                                  
     print(" _____     _   _             ")
     print("|     |___| |_|_|___ ___ ___ ")
@@ -328,24 +337,23 @@ def options():
         print("Welcome to Options. Options have their status written next to them.")
         print("More complex options may prompt you for more information.\n")
         print("These changes can be reversed. Please enter the corresponding number from the following menu options:\n")
-        print("[1] Password [enabled variable]\n", enabled) #TODO fix this line for the variable
+        print(f"[1] Password {'enabled' if passwordExists else 'disabled'}\n") 
         print("[2] Save and Go Back\n")
         user_input = input()
         if user_input == "1":
-            if passwordExists:
-                print("Please enter your new password. If you would like to disable the password,")
-                print("do not type anything, and hit 'enter'.\n")
-                #TODO: create password.txt in options
-                user_input = input()
-                if user_input == "":
-                    passwordExists = False
-                else:
-                    password = user_input
-                    passwordExists = True 
+            print("Please enter your new password. If you would like to disable the password,")
+            print("do not type anything, and hit 'enter'.\n")
+            user_input = input()
+            with open("password.txt", "w", encoding="utf-8") as f:
+                f.write(user_input)
+            if user_input == "":
+                settings[1] = "0" 
             else:
-                pass
+                password = user_input
+                settings[1] = "1" #This does not change flags, just updates 
         elif user_input == "2":
-            #TODO: save user data before exiting options
+            #save user data before exiting options
+            saveSettings() #this changes the flags
             break
         else:
             print("Error: Menu option not found. Please enter the chosen number.\n")
@@ -389,7 +397,7 @@ def helpdoc():
     print("----FAQ----")
     print("Q: Where are my journal entries stored?")
     print("A: They are automatically stored in the same location Pocket Journal is downloaded / executed.")
-    print("They are in a sub folder named 'journalentries'.") #TODO: Make sure this is right
+    print("They are in a sub folder named 'journalentries'.") 
     print("\n")
     print("")
 
@@ -411,7 +419,7 @@ def main():
                                                                  
     print("Welcome to Pocket Journal, your local, digital journal managing application. Make entries to read later!\n")
     print("\n")
-    settings = readData()
+    readData()
     if firstTimeSetUp: #If the user has not used Pocket Journal before
         firstStart()
     if passwordExists: #If the user has a password set up
