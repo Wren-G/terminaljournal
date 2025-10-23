@@ -7,7 +7,6 @@
 # TODO: (Future microservice ideas: Encrypt text, decrypt text, edit and update text file, random number generator, ascii art printer, positive affirmation generator, )
 # TODO: (future implementation add flags for encryption and things like the ascii and words of affirmation for more user experience)
 # TODO: For all microservice and settings adjustments, first time start up, readdata, help, options, and even settings.txt all need updates
-# TODO: Cannot find files, need to see if I can change where I am looking as it is looking inside the py file
 
 import os #operating system commands
 import sys #for system exit
@@ -424,9 +423,9 @@ def helpdoc():
 def main():
     global exitbool, passwordExists
     print("   ___           __       __       __                        __  ")
-    print("  / _ \___  ____/ /_____ / /_  __ / /__  __ _________  ___ _/ /  ")
-    print(" / ___/ _ \/ __/  '_/ -_) __/ / // / _ \/ // / __/ _ \/ _ `/ /   ")
-    print("/_/   \___/\__/_/\_\\__/\__/   \___/\___/\_,_/_/ /_//_/\_,_/_/   ")
+    print("  / _ \___  ____/ /_____ / /_  __ / /__  __ _________  ___ _/ /  ") # type: ignore
+    print(" / ___/ _ \/ __/  '_/ -_) __/ / // / _ \/ // / __/ _ \/ _ `/ /   ") # type: ignore
+    print("/_/   \___/\__/_/\_\\__/\__/   \___/\___/\_,_/_/ /_//_/\_,_/_/   ") # type: ignore
     print("\n")
                                                                  
     print("Welcome to Pocket Journal, your local, digital journal managing application. Make entries to read later!\n")
