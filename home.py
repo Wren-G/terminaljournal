@@ -7,9 +7,18 @@
 # TODO: (Future microservice ideas: Encrypt text, decrypt text, edit and update text file, random number generator, ascii art printer, positive affirmation generator, )
 # TODO: (future implementation add flags for encryption and things like the ascii and words of affirmation for more user experience)
 # TODO: For all microservice and settings adjustments, first time start up, readdata, help, options, and even settings.txt all need updates
+# TODO: Cannot find files, need to see if I can change where I am looking as it is looking inside the py file
 
 import os #operating system commands
 import sys #for system exit
+
+#this function helps move directories 
+def get_base_dir():
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
+base_dir = get_base_dir()
 
 # Globals, all option statuses are booleans, more to be added in future iterations
 settings = ['0'] * 10  # character array of ten spots, 0 or 1
@@ -34,7 +43,8 @@ def saveSettings():
         bits = bits[:10]
     out = "".join(bits)
 
-    with open("settings.txt", "w", encoding="utf-8") as f:
+    settings_path = os.path.join(base_dir, "settings.txt")
+    with open(settings_path, "w", encoding="utf-8") as f:
         f.write(out)
 
     readData()
@@ -44,7 +54,8 @@ def saveSettings():
 #settings array should be updated with this information
 def readData():
     global settings, firstTimeSetUp, passwordExists, password
-    with open("settings.txt", "r", encoding="utf-8") as f:
+    settings_path = os.path.join(base_dir, "settings.txt")
+    with open(settings_path, "r", encoding="utf-8") as f:
         raw = f.read()
     bits = [c for c in raw if c in "01"]
     #ensure we have exactly 10 (for now) (for other coders, this is for my future settings slots / global flags)
@@ -61,8 +72,9 @@ def readData():
     #only read password.txt if a password exists
     password = ""
     if passwordExists:
-        with open("password.txt", "r", encoding="utf-8") as pf:
-            password = pf.read().rstrip("\n")
+        password_path = os.path.join(base_dir, "password.txt")
+        with open(password_path, "r", encoding="utf-8") as f:
+            password = f.read().rstrip("\n") #ERROR ON THIS LINE
     #return the array just in case
     return settings
 
@@ -82,7 +94,7 @@ def firstStart():
     print("To begin Journal initialization, please hit 'Enter'.")
     user_input = input()
     #creates the folder 'journalentries' if it does not exist
-    folder = "journalentries"
+    folder = os.path.join(base_dir, "journalentries")
     os.makedirs(folder, exist_ok=True)
     # starts by saving information to settings.txt in set format
     # write 00 to the text file (no password, no first time setup prompt)
@@ -98,7 +110,7 @@ def firstStart():
 #This function allows users to user_inputect and delete entries, deleting the text files that hold them
 def deleteEntry():
     global menubool
-    folder = "journalentries"
+    folder = os.path.join(base_dir, "journalentries")
 
     files = [f for f in os.listdir(folder) if f.endswith(".txt")]
     if not files:
@@ -152,8 +164,7 @@ def deleteEntry():
 #This function allows users to create text files /  entries on their computer
 #This function also creates the folder 'journal entries' if it does not exist
 def createEntry():
-    folder = "journalentries"
-    #ensure the folder exists and makes the folder if first start up
+    folder = os.path.join(base_dir, "journalentries")
     os.makedirs(folder, exist_ok=True)
     print("Please enter the name of the new journal entry.")
     entryname = input().strip()
@@ -183,7 +194,7 @@ def createEntry():
 #There is also an option for the users to delete their entries if they so wish
 def showEntries():
     global menubool, settings
-    folder = "journalentries"
+    folder = os.path.join(base_dir, "journalentries")
 
     # ensure folder exists and contains .txt files
     if not os.path.exists(folder):
@@ -344,7 +355,8 @@ def options():
             print("Please enter your new password. If you would like to disable the password,")
             print("do not type anything, and hit 'enter'.\n")
             user_input = input()
-            with open("password.txt", "w", encoding="utf-8") as f:
+            password_path = os.path.join(base_dir, "password.txt")
+            with open(password_path, "w", encoding="utf-8") as f:
                 f.write(user_input)
             if user_input == "":
                 settings[1] = "0" 
