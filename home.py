@@ -11,12 +11,14 @@ import sys #for system exit
 import time # for sleep waits
 
 #this function helps move directories 
-def get_base_dir():
+def getBaseDir():
     if getattr(sys, "frozen", False):
         return os.path.dirname(sys.executable)
     return os.path.dirname(os.path.abspath(__file__))
 
-base_dir = get_base_dir()
+baseDir = getBaseDir()
+inputPath = os.path.join(baseDir, "input.txt")
+outputPath = os.path.join(baseDir, "output.txt")
 
 # Globals, all option statuses are booleans, more to be added in future iterations
 settings = ['0'] * 10  # character array of ten spots, 0 or 1
@@ -42,7 +44,7 @@ def saveSettings():
         bits = bits[:10]
     out = "".join(bits)
 
-    settings_path = os.path.join(base_dir, "settings.txt")
+    settings_path = os.path.join(baseDir, "settings.txt")
     with open(settings_path, "w", encoding="utf-8") as f:
         f.write(out)
 
@@ -53,7 +55,7 @@ def saveSettings():
 #settings array should be updated with this information
 def readData():
     global settings, firstTimeSetUp, passwordExists, password
-    settings_path = os.path.join(base_dir, "settings.txt")
+    settings_path = os.path.join(baseDir, "settings.txt")
     with open(settings_path, "r", encoding="utf-8") as f:
         raw = f.read()
     bits = [c for c in raw if c in "01"]
@@ -71,7 +73,7 @@ def readData():
     #only read password.txt if a password exists
     password = ""
     if passwordExists:
-        password_path = os.path.join(base_dir, "password.txt")
+        password_path = os.path.join(baseDir, "password.txt")
         with open(password_path, "r", encoding="utf-8") as f:
             password = f.read().rstrip("\n") #ERROR ON THIS LINE
     #return the array just in case
@@ -93,7 +95,7 @@ def firstStart():
     print("To begin Journal initialization, please hit 'Enter'.")
     user_input = input()
     #creates the folder 'journalentries' if it does not exist
-    folder = os.path.join(base_dir, "journalentries")
+    folder = os.path.join(baseDir, "journalentries")
     os.makedirs(folder, exist_ok=True)
     # starts by saving information to settings.txt in set format
     # write 00 to the text file (no password, no first time setup prompt)
@@ -109,7 +111,7 @@ def firstStart():
 #This function allows users to user_inputect and delete entries, deleting the text files that hold them
 def deleteEntry():
     global menubool
-    folder = os.path.join(base_dir, "journalentries")
+    folder = os.path.join(baseDir, "journalentries")
 
     files = [f for f in os.listdir(folder) if f.endswith(".txt")]
     if not files:
@@ -163,7 +165,7 @@ def deleteEntry():
 #This function allows users to create text files /  entries on their computer
 #This function also creates the folder 'journal entries' if it does not exist
 def createEntry():
-    folder = os.path.join(base_dir, "journalentries")
+    folder = os.path.join(baseDir, "journalentries")
     os.makedirs(folder, exist_ok=True)
     print("Please enter the name of the new journal entry.")
     entryname = input().strip()
@@ -183,12 +185,14 @@ def createEntry():
 
     # encrypt the user input
     entryText = 'e' + entryText
-    with open("input.txt", "w") as f:
+    with open(inputPath, "w") as f:
         f.write(entryText)
     # Read the encrypted text back into entryText
     time.sleep(2)
-    with open("output.txt", "r") as f: 
+    with open(outputPath, "r") as f: 
         entryText = f.read()
+    with open(outputPath, "w") as f:
+            f.write("")
     # write entryText into txt file
     with open(abs_path, "w", encoding="utf-8") as f:
         f.write(entryText)
@@ -201,7 +205,7 @@ def createEntry():
 #There is also an option for the users to delete their entries if they so wish
 def showEntries():
     global menubool, settings
-    folder = os.path.join(base_dir, "journalentries")
+    folder = os.path.join(baseDir, "journalentries")
 
     # ensure folder exists and contains .txt files
     if not os.path.exists(folder):
@@ -247,12 +251,14 @@ def showEntries():
         with open(filepath, "r") as f: 
             stringEntry = f.read()
         stringEntry = 'd' + stringEntry
-        with open("input.txt", "w") as f:
+        with open(inputPath, "w") as f:
             f.write(stringEntry)
         # wait for decryption then read output
         time.sleep(2)
-        with open("output.txt", "r") as f: 
+        with open(outputPath, "r") as f: 
             stringEntry = f.read()
+        with open(inputPath, "w") as f:
+            f.write("")
         # write output to filepath
         with open(filepath, "w") as f:
             f.write(stringEntry)
@@ -279,10 +285,10 @@ def showEntries():
         print("\n--- End of entry ---\n")
 
         # encrypt the entry again now that it is done being printed
-        with open(filename, "r") as f: 
+        with open(filepath, "r") as f: 
             stringEntry = f.read()
         stringEntry = 'e' + stringEntry
-        with open("input.txt", "w") as f:
+        with open(inputPath, "w") as f:
             f.write(stringEntry)
         # wait for the result, then write it into filename
         time.sleep(2)
@@ -386,7 +392,7 @@ def options():
             print("Please enter your new password. If you would like to disable the password,")
             print("do not type anything, and hit 'enter'.\n")
             user_input = input()
-            password_path = os.path.join(base_dir, "password.txt")
+            password_path = os.path.join(baseDir, "password.txt")
             with open(password_path, "w", encoding="utf-8") as f:
                 f.write(user_input)
             if user_input == "":
