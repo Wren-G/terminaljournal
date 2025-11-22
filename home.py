@@ -3,13 +3,12 @@
 #This program is my main implementation, all functions here have comments to explain them
 # TODO: Add comment blocks to all functions
 # TODO: Add comment blocks to all programs and micro services
-# TODO: (Future implementation add Cryptography to encrypt entries before saving them and decrypt before reading, maybe sprint 2! Great micro service too. Maybe input is a txt file and same with output idk, or path name whichever works best across languages. OSs will be a problem.)
-# TODO: (Future microservice ideas: Encrypt text, decrypt text, edit and update text file, random number generator, ascii art printer, positive affirmation generator, )
 # TODO: (future implementation add flags for encryption and things like the ascii and words of affirmation for more user experience)
 # TODO: For all microservice and settings adjustments, first time start up, readdata, help, options, and even settings.txt all need updates
 
 import os #operating system commands
 import sys #for system exit
+import time # for sleep waits
 
 #this function helps move directories 
 def get_base_dir():
@@ -30,6 +29,7 @@ menubool = True # used for while loops
 wrongpass = True # used for password function
 password = "" # holds password string
 exitbool = True # main menu while loop
+encryption = False # encrypt 
 
 #save function should write the settings array into the text file
 #save function also calls readdata to ensure that the program is always up to date and a call is not missed
@@ -179,11 +179,19 @@ def createEntry():
     abs_path = os.path.abspath(os.path.join(folder, filename))
     print(f"{filename} successfully created. You may now type your entry. Hitting 'enter' will save")
     print("and close your submission.\n")
-    entry_text = input()
+    entryText = input()
 
-    # write entry_text into txt file
+    # encrypt the user input
+    entryText = 'e' + entryText
+    with open("input.txt", "w") as f:
+        f.write(entryText)
+    # Read the encrypted text back into entryText
+    time.sleep(2)
+    with open("output.txt", "r") as f: 
+        entryText = f.read()
+    # write entryText into txt file
     with open(abs_path, "w", encoding="utf-8") as f:
-        f.write(entry_text)
+        f.write(entryText)
     print(f"Entry {filename} saved in path: {abs_path}")
 
 
@@ -234,7 +242,20 @@ def showEntries():
         index = user_input_num - 1
         filename = files[index]
         filepath = os.path.join(folder, filename)
-
+        
+        # decrypt the entry
+        with open(filepath, "r") as f: 
+            stringEntry = f.read()
+        stringEntry = 'd' + stringEntry
+        with open("input.txt", "w") as f:
+            f.write(stringEntry)
+        # wait for decryption then read output
+        time.sleep(2)
+        with open("output.txt", "r") as f: 
+            stringEntry = f.read()
+        # write output to filepath
+        with open(filepath, "w") as f:
+            f.write(stringEntry)
         # print file contents
         try:
             with open(filepath, "r", encoding="utf-8") as rf:
@@ -256,6 +277,17 @@ def showEntries():
         else:
             print("(This entry is empty.)")
         print("\n--- End of entry ---\n")
+
+        # encrypt the entry again now that it is done being printed
+        with open(filename, "r") as f: 
+            stringEntry = f.read()
+        stringEntry = 'e' + stringEntry
+        with open("input.txt", "w") as f:
+            f.write(stringEntry)
+        # wait for the result, then write it into filename
+        time.sleep(2)
+        with open(filepath, "w") as f:
+            f.write(stringEntry)
 
         while True:
             print("Please enter the corresponding number from the following menu options:\n")
