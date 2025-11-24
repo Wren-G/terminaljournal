@@ -5,6 +5,7 @@
 # TODO: Add comment blocks to all programs and micro services
 # TODO: (future implementation add flags for encryption and things like the ascii and words of affirmation for more user experience)
 # TODO: For all microservice and settings adjustments, first time start up, readdata, help, options, and even settings.txt all need updates
+# TODO: put error handling so empty messages without content do not get saved into the filepath
 
 import os #operating system commands
 import sys #for system exit
