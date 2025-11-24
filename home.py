@@ -257,7 +257,7 @@ def showEntries():
         time.sleep(2)
         with open(outputPath, "r") as f: 
             stringEntry = f.read()
-        with open(inputPath, "w") as f:
+        with open(outputPath, "w") as f:
             f.write("")
         # write output to filepath
         with open(filepath, "w") as f:
