@@ -292,6 +292,10 @@ def showEntries():
             f.write(stringEntry)
         # wait for the result, then write it into filename
         time.sleep(2)
+        with open(outputPath, "r") as f: 
+            stringEntry = f.read()
+        with open(outputPath, "w") as f:
+            f.write("")
         with open(filepath, "w") as f:
             f.write(stringEntry)
 
