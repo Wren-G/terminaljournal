@@ -405,7 +405,7 @@ def festiveMessages():
     print("sent string successfully")
 
     response = socket3.recv_string()
-    print(response)
+    print("Today's Holiday: {response}")
     context3.destroy()
 
 # search entry microservice function (microservice 4)
@@ -538,7 +538,7 @@ def main():
         passwordfunc()
     if holidayMessages:
         festiveMessages()
-    if asciiAllow():
+    if asciiAllow:
         ASCIIart()
     while exitbool:
         print("Please enter the corresponding number from the following menu options:\n")
