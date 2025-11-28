@@ -10,6 +10,8 @@
 import os #operating system commands
 import sys #for system exit
 import time # for sleep waits
+import zmq # for communication
+import json # for a single line :/
 
 #this function helps move directories 
 def getBaseDir():
@@ -33,6 +35,8 @@ wrongpass = True # used for password function
 password = "" # holds password string
 exitbool = True # main menu while loop
 encryption = False # encrypt 
+holidayMessages = True # print holiday messages
+asciiAllow = True # print ascii art
 
 #save function should write the settings array into the text file
 #save function also calls readdata to ensure that the program is always up to date and a call is not missed
@@ -371,9 +375,63 @@ def passwordfunc():
             print("Error: Incorrect Password")
             counter = counter + 1
             if counter == 3:
-                print("Too many incorrect password attempts. Goodbye.")
+                print("Too many incorrect password attempts. Goodbye.\n")
                 #TODO: ensure exit command is safe
                 sys.exit()
+
+#All microservice functions below are to be self contained and create and destroy contexts as uses arise.
+#TODO: Figure out if breaking the context breaks all, also if breaking means that it cannot do it multiple times in a use case
+#ASCII art microservice function (microservice 2)
+def ASCIIart():
+    context2 = zmq.Context()
+    socket2 = context2.socket(zmq.REQ)
+    socket2.connect('tcp://localhost:5577')
+    print('Client is running on port 5577...')
+    socket2.send_string('ascii')
+    time.sleep(10) # change at will, this ensures the program has time to load.
+    ascii_art = socket2.recv_string()
+    print(ascii_art)
+    context2.destroy()
+
+#Festive messages microservice function (microservice 3)
+def festiveMessages():
+    context3 = zmq.Context()
+    socket3 = context3.socket(zmq.REQ)
+    socket3.connect('tcp://localhost:7777')
+    print('Socket connected')
+
+    choice = 'government'
+    socket3.send_string(choice)
+    print("sent string successfully")
+
+    response = socket3.recv_string()
+    print(response)
+    context3.destroy()
+
+# search entry microservice function (microservice 4)
+# might have to destroy context at the end of main
+def searchEntry():
+    context4 = zmq.Context()
+
+    #  Socket talks to server
+    print("Connecting to server…\n")
+    socket4 = context4.socket(zmq.REQ)
+    socket4.connect("tcp://localhost:5524")
+    filePath = "journalentries" # TODO This should be a file path, likely will not work right at first
+    mode = "terminal"
+    print("You will recieve a list of journal entries containing a specified word or phrase.")
+    print("Enter the word or phrase you would like to search for: ")
+    keyword = input()
+    searchClient = {"mode": mode, "keyword": keyword, "filePath": filePath}
+    socket4.send_string(json.dumps(searchClient))
+
+    print(f"Entries containing the phrase: '{keyword}'")
+    while True:
+        #  Receives reply
+        receivedMessage = socket4.recv_string()
+        print(f"{receivedMessage}")
+        break
+    context4.destroy()
 
 
 #Options allows users to affect global variables, and saves them in a text file so they persist after 
@@ -478,6 +536,10 @@ def main():
         firstStart()
     if passwordExists: #If the user has a password set up
         passwordfunc()
+    if holidayMessages:
+        festiveMessages()
+    if asciiAllow():
+        ASCIIart()
     while exitbool:
         print("Please enter the corresponding number from the following menu options:\n")
         print("[1] Manage entries\n")
@@ -496,6 +558,7 @@ def main():
             exitbool = False  
         else:
             print("Error: Menu option not found. Please enter the chosen number.\n")
-
+            
+    # TODO cleanup?
 # Program calls main function, 
 main()
