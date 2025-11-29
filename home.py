@@ -195,14 +195,18 @@ def createEntry():
         f.write(entryText)
     # Read the encrypted text back into entryText
     time.sleep(2)
-    with open(outputPath, "r") as f: 
-        entryText = f.read()
+    if outputPath:
+        with open(outputPath, "r") as f: 
+            entryText = f.read()
     with open(outputPath, "w") as f:
             f.write("")
     # write entryText into txt file
-    with open(abs_path, "w", encoding="utf-8") as f:
-        f.write(entryText)
-    print(f"Entry {filename} saved in path: {abs_path}")
+    if (entryText):
+        with open(abs_path, "w", encoding="utf-8") as f:
+            f.write(entryText)
+        print(f"Entry {filename} saved in path: {abs_path}")
+    else: #TODO check this
+        print(f"Err: Entry {filename} saved in path: {abs_path}")
 
 
 
@@ -298,8 +302,9 @@ def showEntries():
             f.write(stringEntry)
         # wait for the result, then write it into filename
         time.sleep(2)
-        with open(outputPath, "r") as f: 
-            stringEntry = f.read()
+        if outputPath:
+            with open(outputPath, "r") as f: 
+                stringEntry = f.read()
         with open(outputPath, "w") as f:
             f.write("")
         with open(filepath, "w") as f:
