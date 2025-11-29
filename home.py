@@ -193,7 +193,7 @@ def createEntry():
     entryText = 'e' + entryText
     with open(inputPath, "w") as f:
         f.write(entryText)
-    # Read the encrypted text back into entryText
+    # Read the encrypted text back into entryText1
     time.sleep(2)
     if outputPath:
         with open(outputPath, "r") as f: 
