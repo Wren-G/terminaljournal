@@ -12,19 +12,19 @@ import random
 import zmq
 import time
 
-PROMPT = {
+PROMPT = [
         "Do you enjoy your current lifestyle? If not, why not?",
         "What moment made you grateful this past week?",
         "Write a letter to someone important to you, or your past or future self.",
         "What is something you want to do on your bucket list, or want to add to it?",
         "What helps you get through the day right now?",
-        "What is a good deed you would like to do?"
+        "What is a good deed you would like to do?",
         "Who is a really important person in your life right now?",
         "When was the last time you took a trip?",
         "What do you need to get off your chest?",
         "What is a memory that never fails to make you smile?",
         "What is something you are looking forward to?"
-}
+]
 
 
 def get_quote(request: str) -> str:
