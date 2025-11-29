@@ -11,7 +11,6 @@ import os #operating system commands
 import sys #for system exit
 import time # for sleep waits
 import zmq # for communication
-import json # for a single line :/
 
 #this function helps move directories 
 def getBaseDir():
@@ -184,7 +183,9 @@ def createEntry():
         filename = entryname
     #save path of file
     abs_path = os.path.abspath(os.path.join(folder, filename))
-    print(f"{filename} successfully created. You may now type your entry. Hitting 'enter' will save")
+    print(f"{filename} successfully created.")
+    promptMenu()
+    print("You may now type your entry. Hitting 'enter' will save")
     print("and close your submission.\n")
     entryText = input()
 
@@ -408,29 +409,30 @@ def festiveMessages():
     print("Today's Holiday: {response}")
     context3.destroy()
 
+
+#small menu
+def promptMenu():
+    print("Would you like a journal prompt? (Y/N)")
+    choice = input()
+    if (choice == "Y"):
+        promptGen()
+    else:
+        return
+
 # search entry microservice function (microservice 4)
 # might have to destroy context at the end of main
-def searchEntry():
+def promptGen():
     context4 = zmq.Context()
 
     #  Socket talks to server
     print("Connecting to server…\n")
     socket4 = context4.socket(zmq.REQ)
-    socket4.connect("tcp://localhost:5524")
-    filePath = "journalentries" # TODO This should be a file path, likely will not work right at first
-    mode = "terminal"
-    print("You will recieve a list of journal entries containing a specified word or phrase.")
-    print("Enter the word or phrase you would like to search for: ")
-    keyword = input()
-    searchClient = {"mode": mode, "keyword": keyword, "filePath": filePath}
-    socket4.send_string(json.dumps(searchClient))
+    socket4.connect("tcp://localhost:5588")
+    socket4.send_string("prompt")
 
-    print(f"Entries containing the phrase: '{keyword}'")
-    while True:
-        #  Receives reply
-        receivedMessage = socket4.recv_string()
-        print(f"{receivedMessage}")
-        break
+    time.sleep(2)
+    receivedMessage = socket4.recv_string()
+    print(f"{receivedMessage}")
     context4.destroy()
 
 
