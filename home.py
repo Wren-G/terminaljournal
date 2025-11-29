@@ -406,7 +406,7 @@ def festiveMessages():
     print("sent string successfully")
 
     response = socket3.recv_string()
-    print("Today's Holiday: {response}")
+    print(f"Today's Holiday: {response}")
     context3.destroy()
 
 

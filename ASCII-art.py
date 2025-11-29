@@ -360,14 +360,15 @@ FESTIVE = {
   """
 }
 
+festive_names = ["Merry Christmas!", "Happy Thanksgiving!", "Happy Independence Day!", "Happy New Year!"]
+
 def get_quote(request) -> str:
     if request.strip().lower() == "ascii":
         return random.choice(ASCII)
-    elif request.strip().lower(): #Test this logic, should check if content exists!
+    elif request.strip() in festive_names: #Test this logic, should check if content exists!
         return FESTIVE.get(request)
     else:
         return "Error: send 'ascii' to receive a quote."
-
 
 
 def main():
